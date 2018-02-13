@@ -47,4 +47,34 @@ int main(int argc, char* argv[]) {
   for(int i = 0; i < sizeof(char_count) / sizeof(int); i++) {
     printf("%d : %c = %d\n", i, (char) i + 'a', char_count[i]);
   }
+
+  int i;
+  int voy = 0;
+  int step = 1;
+  int borne = sizeof(char_count) / sizeof(int);
+
+  while(step < borne) {
+
+    #pragma omp parallel shared(char_count, step) private (i)
+    {
+      #pragma omp for schedule(dynamic)
+      for(i = 0; i < borne; i += step * 2) {
+        char_count[i] = char_count[i] + ((i + step < borne) ? char_count[i + step] : 0);
+        
+        if(i + step < borne) {
+  				char_count[i + step] = 0;
+  			}
+      }
+    }
+    step *= 2;
+  }
+
+
+  printf("Total number of character = %d\n", char_count[0]);
+
+
+  for(int i = 0; i < sizeof(char_count) / sizeof(int); i++) {
+    printf("%d : %c = %d\n", i, (char) i + 'a', char_count[i]);
+  }
+
 }
