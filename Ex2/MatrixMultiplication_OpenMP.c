@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <omp.h>
+#include <time.h>
 
 int main(int argc, char **argv) {
+  srand(time(NULL));
+
   if(argc != 2) {
     fprintf(stderr, "Error Usage : n > 0 size of the matrix");
     exit(1);
@@ -22,10 +25,11 @@ int main(int argc, char **argv) {
 
 #pragma omp parallel shared(matrix_res, matrix_1, matrix_2)
 {
+  #pragma omp for schedule(dynamic)
   for(int x = 0; x < n; x++) {
     for(int y = 0; y < n; y++) {
-      matrix_1[x][y] = rand() % 100;
-      matrix_2[x][y] = rand() % 100;
+      matrix_1[x][y] = rand() % 10;
+      matrix_2[x][y] = rand() % 10;
       matrix_res[x][y] = 0;
     }
   }
@@ -47,12 +51,13 @@ int main(int argc, char **argv) {
     printf("\n");
   }
 
-
-#pragma omp parallel shared(matrix_res, matrix_1, matrix_2)
+int x, y, i;
+#pragma omp parallel shared(matrix_res, matrix_1, matrix_2) private(x, y, i)
 {
-  for(int x = 0; x < n; x++) {
-    for(int y = 0; y < n; y++) {
-      for(int i = 0; i < n; i++) {
+  #pragma omp for schedule(dynamic)
+  for( x = 0; x < n; x++) {
+    for( y = 0; y < n; y++) {
+      for( i = 0; i < n; i++) {
         matrix_res[x][y] += matrix_1[x][i] * matrix_2[i][y];
       }
     }
